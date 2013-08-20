@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name           reddit.com - Mod events report generator
-// @namespace      v1.2
+// @namespace      v1.3
 // @include        http://www.reddit.com/*/about/log*
 // @author         /u/DEADB33F tweaked to work on Chrome by /u/rolmos
 // ==/UserScript==
@@ -8,7 +8,7 @@
 function main()
 {
   // Add Generate Report box
-	$('#siteTable').prepend(' \
+    var $reportGenHTML = $('\
 		<table border="0" id="modreport-settings"> \
 			<tbody> \
 				<tr> \
@@ -33,12 +33,27 @@ function main()
 			</tbody> \
 		</table> \
 	');
+    
+	$('#siteTable').prepend($reportGenHTML);
+    $reportGenHTML.hide();
 
+    $('.menuarea').append('\
+        <div class="spacer">\
+            <a class="show-report-gen" href="javascript:;" style="float:right;">generate mod reports</a>\
+        </div>\
+	');
+    
+    $('body').delegate('.show-report-gen', 'click', function(e) {
+        $reportGenHTML.show();
+        $(e.target).remove();  //rather than making a complex toggle, just remove the link.  They can always refresh the page.
+    });
+
+    
 	// Add event type list
 	var	eventTypeRX	= /type=(\w+)/,
 	eventNames = {},
     subreddit = subreddit || location.pathname.match(/\/[rm]\/(\w+)/)[1];
-
+    
 	$('.modaction-drop a').each( function(){
 
 		var	match = $(this).attr('href').match( eventTypeRX );
@@ -175,6 +190,9 @@ function main()
 			$('#modreport tfoot tr').append('<td>'+ events[name] +'</td>');
 		}
 		$('#modreport tfoot tr').append('<td><b>'+ grandtotal +'</b></td>');
+        
+        // finally, hide the gen box.
+        $reportGenHTML.hide();
 	}
 
 	// 'generate' buton clicked
